@@ -1,6 +1,9 @@
+```
     About SqStat-Docker
     ===================
+
 SqStat-Docker is a project to support Squid 4.0.20 and Docker.
+
 
     About SqStat
     ============
@@ -42,3 +45,4 @@ For a complete list of changes, see the CHANGES file.
    4. Point your browser to sqstat.php file and see what happens :)
    5. (optionally) enable ip resolving in config.inc.php. Also you can make 
       "hosts" like file with ip->name pairs.
+```
