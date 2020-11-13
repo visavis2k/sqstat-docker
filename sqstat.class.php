@@ -8,7 +8,7 @@ class squidstat{
 	var $errno;
 	
 	var $use_sessions=false;
-	function squidstat(){
+	function ____construct(){
 		if (!function_exists("preg_match")){
 			$this->errno=5;
 			$this->errstr='You need to install <a href="http://www.php.net/pcre/" target="_blank">PHP pcre extension</a> to run this script';
@@ -19,6 +19,11 @@ class squidstat{
 		// we need session support to gather avg. speed
 		if (function_exists("session_start")){
 			$this->use_sessions=true;
+		}
+		
+		if($this->use_sessions){
+			session_name('SQDATA');
+			session_start();
 		}
 		
 	}
@@ -94,7 +99,7 @@ class squidstat{
 		$raw=array();
 		// sending request
 		if(!$this->fp) die("Please connect to server");
-		$out = "GET cache_object://localhost/active_requests HTTP/1.0\r\n";
+		$out = "GET cache_object://localhost/active_requests HTTP/1.1\r\n";
 		if($pass!="") $out.="Authorization: Basic ".base64_encode("cachemgr:$pass")."\r\n";
 		$out.="\r\n";
 		fwrite($this->fp, $out);
@@ -104,7 +109,7 @@ class squidstat{
 		}
 		fclose($this->fp);
 		
-		if($raw[0]!="HTTP/1.0 200 OK"){
+		if($raw[0]!="HTTP/1.1 200 OK"){
 			$this->errno=1;
 			$this->errstr="Cannot get data. Server answered: $raw[0]";
 			return false;
@@ -128,8 +133,8 @@ class squidstat{
 				if($connection){
 					/* username field is avaible in Squid 2.6 stable */
 					if(substr($v,0,9)=="username ") $parsed["con"][$connection]["username"]=substr($v,9);
-					if(substr($v,0,5)=="peer:") $parsed["con"][$connection]["peer"]=substr($v,6);
-					if(substr($v,0,3)=="me:") $parsed["con"][$connection]["me"]=substr($v,4);
+					if(substr($v,0,7)=="remote:") $parsed["con"][$connection]["remote"]=substr($v,8);
+					if(substr($v,0,6)=="local:") $parsed["con"][$connection]["local"]=substr($v,7);
 					if(substr($v,0,4)=="uri ") $parsed["con"][$connection]["uri"]=substr($v,4);
 					if(substr($v,0,10)=="delay_pool") $parsed["con"][$connection]["delay_pool"]=substr($v,11);
 					
@@ -175,7 +180,7 @@ class squidstat{
 
 		foreach($data["con"] as $key => $v){
 			if(substr($v["uri"],0,13)=="cache_object:") continue; // skip myself
-			$ip=substr($v["peer"],0,strpos($v["peer"],":"));
+			$ip=substr($v["remote"],0,strpos($v["remote"],":"));
 			if(isset($hosts_array[$ip])){
 				$ip=$hosts_array[$ip];
 			}
@@ -186,7 +191,7 @@ class squidstat{
 				else $ip=$hostname;
 			}			
 			else{
-				$ip=ip2long(substr($v["peer"],0,strpos($v["peer"],":")));
+				$ip=ip2long(substr($v["remote"],0,strpos($v["remote"],":")));
 			}
 			$v['connection'] = $key;
 			if(!isset($v["username"])) $v["username"]="N/A";
