@@ -99,7 +99,7 @@ class squidstat{
 		$raw=array();
 		// sending request
 		if(!$this->fp) die("Please connect to server");
-		$out = "GET cache_object://localhost/active_requests HTTP/1.1\r\n";
+		$out = "GET cache_object://localhost/active_requests HTTP/1.0\r\n";
 		if($pass!="") $out.="Authorization: Basic ".base64_encode("cachemgr:$pass")."\r\n";
 		$out.="\r\n";
 		fwrite($this->fp, $out);
